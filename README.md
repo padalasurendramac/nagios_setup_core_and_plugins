@@ -15,13 +15,17 @@ sudo dpkg -l selinux*
 ===== Ubuntu 20.x =====
 
 sudo apt-get update
+
 sudo apt-get install -y autoconf gcc libc6 make wget unzip apache2 php libapache2-mod-php7.4 libgd-dev
+
 sudo apt-get install openssl libssl-dev
 
 ## Downloading the Source
 
 cd /tmp
+
 wget -O nagioscore.tar.gz https://github.com/NagiosEnterprises/nagioscore/archive/nagios-4.4.14.tar.gz
+
 tar xzf nagioscore.tar.gz
 
 
