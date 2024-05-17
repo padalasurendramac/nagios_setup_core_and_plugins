@@ -75,10 +75,10 @@ Save this script as /usr/local/nagios/libexec/check_custom_service.sh on the rem
 SERVICE="your_service_name"
 if pgrep "$SERVICE" &gt; /dev/null 2&gt;&amp;1
 then
-    echo "$SERVICE is running."
+    echo "OK: $SERVICE is running."
     exit 0
 else
-    echo "$SERVICE is not running."
+    echo "CRITICAL: $SERVICE is not running."
     exit 2
 fi
 
