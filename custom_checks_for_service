@@ -88,3 +88,24 @@ Make the script executable:bashCopy code
 sudo chmod +x /usr/local/nagios/libexec/check_custom_service.sh
 
 By following these steps, you can monitor a custom service on a remote host using NRPE with Nagios.
+
+
+time 
+
+
+#!/bin/bash
+
+SERVICE="your_service_name"
+SERVICE_PID=$(pgrep "$SERVICE")
+
+if [ -n "$SERVICE_PID" ]; then
+    START_TIME=$(ps -o lstart= -p "$SERVICE_PID")
+    echo "OK: $SERVICE is running. Start time: $START_TIME"
+    exit 0
+else
+    echo "CRITICAL: $SERVICE is not running."
+    exit 2
+fi
+
+
+
