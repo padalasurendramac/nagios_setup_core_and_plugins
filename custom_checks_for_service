@@ -1,0 +1,55 @@
+To monitor a custom service on a remote host using NRPE (Nagios Remote Plugin Executor), follow these steps:Step 1: Install and Configure NRPE on the Remote HostInstall NRPE and Nagios Plugins:
+On the remote host, install the NRPE agent and the Nagios plugins package. For example, on a Debian-based system, use:bashCopy codesudo apt-get install nagios-nrpe-server nagios-plugins
+Configure NRPE:
+Edit the NRPE configuration file, typically found at /etc/nagios/nrpe.cfg or /usr/local/nagios/etc/nrpe.cfg.Add a command to check your custom service. For example, if you have a script to check a service, place it in /usr/local/nagios/libexec and make it executable:bashCopy codesudo chmod +x /usr/local/nagios/libexec/check_custom_service.sh
+Then, add the command definition to nrpe.cfg:bashCopy codecommand[check_custom_service]=/usr/local/nagios/libexec/check_custom_service.sh
+Ensure the NRPE server allows connections from your Nagios server. Add the Nagios server's IP address to the allowed_hosts directive in nrpe.cfg:bashCopy codeallowed_hosts=127.0.0.1,&lt;Nagios_Server_IP&gt;
+Restart NRPE Service:
+After configuring NRPE, restart the NRPE service:bashCopy codesudo systemctl restart nagios-nrpe-server
+Step 2: Configure Nagios ServerDefine the NRPE Command:
+On the Nagios server, edit the commands.cfg file, typically located at /usr/local/nagios/etc/objects or /etc/nagios/objects, to define the NRPE command:bashCopy codedefine command{
+    command_name    check_nrpe
+    command_line    $USER1$/check_nrpe -H $HOSTADDRESS$ -c $ARG1$
+}
+Define the Service in services.cfg:
+Add a new service definition in the services.cfg file:bashCopy codedefine service{
+    use                     generic-service       ; Inherit default values from the generic-service template
+    host_name               remote_host_name      ; Replace with the actual hostname or IP address
+    service_description     Custom Service Check  ; Description of the service
+    check_command           check_nrpe!check_custom_service
+    check_interval          5                     ; Check the service every 5 minutes
+    retry_interval          1                     ; Retry every minute if the service check fails
+    max_check_attempts      3                     ; Consider the service down after 3 failed checks
+    notification_interval   30                    ; Notify every 30 minutes if the service is down
+    notification_period     24x7                  ; Notify all the time
+    contacts                nagiosadmin           ; Contact to notify
+}
+Define the Host in hosts.cfg:
+Ensure the remote host is defined in the hosts.cfg file:bashCopy codedefine host{
+    use                     generic-host          ; Inherit default values from the generic-host template
+    host_name               remote_host_name      ; Hostname or IP address of the remote host
+    alias                   Remote Server         ; Alias for the host
+    address                 192.168.1.100         ; IP address of the remote host
+    max_check_attempts      3                     ; Consider the host down after 3 failed checks
+    check_period            24x7                  ; Check the host all the time
+    notification_interval   30                    ; Notify every 30 minutes if the host is down
+    notification_period     24x7                  ; Notify all the time
+    contacts                nagiosadmin           ; Contact to notify
+}
+Step 3: Verify and Restart NagiosVerify Configuration:
+Check the Nagios configuration for errors:bashCopy codesudo /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+Restart Nagios:
+Restart the Nagios service to apply the changes:bashCopy codesudo systemctl restart nagios
+Custom Service Check Script ExampleHere is an example script to check if a custom service is running. Save this script as /usr/local/nagios/libexec/check_custom_service.sh on the remote host.bashCopy code#!/bin/bash
+
+SERVICE="your_service_name"
+if pgrep "$SERVICE" &gt; /dev/null 2&gt;&amp;1
+then
+    echo "$SERVICE is running."
+    exit 0
+else
+    echo "$SERVICE is not running."
+    exit 2
+fi
+Make the script executable:bashCopy codesudo chmod +x /usr/local/nagios/libexec/check_custom_service.sh
+By following these steps, you can monitor a custom service on a remote host using NRPE with Nagios.
